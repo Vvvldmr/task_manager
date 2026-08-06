@@ -1,0 +1,40 @@
+# Виртуальное окружение
+venv/
+.venv/
+env/
+ENV/
+
+# Кэш Python
+**/__pycache__/
+*.py[cod]
+*$py.class
+
+# База данных (локальная SQLite)
+*.sqlite3
+*.db
+
+# Секретные файлы и настройки среды
+.env
+.env.[a-zA-Z]*
+*.local
+
+# Медиа-файлы (загрузки пользователей)
+media/
+
+# Статические файлы (собранные для продакшена)
+staticfiles/
+
+# Настройки сред разработки (IDE)
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Логи и отчеты
+*.log
+htmlcov/
+.toast
+.pytest_cache/
