@@ -2,9 +2,10 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.forms import UserCreationForm
 from django.views.generic import TemplateView, CreateView, DetailView
 from django.urls import reverse_lazy
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, login
 
 from .models import Task
 
@@ -70,5 +71,12 @@ class FriendProfileView(LoginRequiredMixin, DetailView):
         return context
     
 
-class RegisterView(TemplateView):
+class RegisterView(CreateView):
+    form_class = UserCreationForm
     template_name = "registration/register.html"
+    success_url = reverse_lazy("index")
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        login(self.request, self.object)
+        return response

@@ -77,10 +77,12 @@
 
     {% if user.is_authenticated %}
         <div class="nav-right">
-            <a href="{% url 'friends' %}">Друзья</a>
             <a href="{% url 'task_create' %}">Создать задачу</a>
             <a href="{% url 'profile' %}">Профиль</a>
-            <a href="{% url 'logout' %}">Выйти</a>
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit">Выйти</button>
+            </form>
         </div>
     {% else %}
         <div class="nav-right">
