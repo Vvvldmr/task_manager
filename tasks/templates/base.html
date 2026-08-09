@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Task Manager{% endblock %}</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        header {
+            background: #2c3e50;
+            color: white;
+            padding: 16px 32px;
+        }
+
+        header h1 {
+            font-size: 24px;
+        }
+
+        nav {
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .nav-right {
+            display: flex;
+            gap: 16px;
+}
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-right: 16px;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        main {
+            max-width: 900px;
+            margin: 30px auto;
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+        }
+
+        footer {
+            text-align: center;
+            color: #777;
+            padding: 20px;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Task Manager</h1>
+
+    <nav>
+    <a href="{% url 'index' %}">Главная</a>
+
+    {% if user.is_authenticated %}
+        <div class="nav-right">
+            <a href="{% url 'friends' %}">Друзья</a>
+            <a href="{% url 'task_create' %}">Создать задачу</a>
+            <a href="{% url 'profile' %}">Профиль</a>
+            <a href="{% url 'logout' %}">Выйти</a>
+        </div>
+    {% else %}
+        <div class="nav-right">
+            <a href="{% url 'login' %}">Войти</a>
+            <a href="{% url 'register' %}">Регистрация</a>
+        </div>
+    {% endif %}
+</nav>
+</header>
+
+<main>
+    {% block content %}
+    {% endblock %}
+</main>
+
+<footer>
+    Task Manager © 2026
+</footer>
+
+</body>
+</html>
