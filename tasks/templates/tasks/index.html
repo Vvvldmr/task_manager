@@ -14,7 +14,11 @@ Task Manager
         <ul>
             {% for task in tasks %}
                 <li>
-                    <strong>{{ task.name }}</strong><br>
+                    <strong><a href="{% url 'task_detail' task.pk %}">{{ task.name }}</a></strong>
+                    — {{ task.get_status_display }},
+                    приоритет: {{ task.get_priority_display }}
+                    {% if task.deadline %}, срок: {{ task.deadline|date:"d.m.Y H:i" }}{% endif %}
+                    <br>
                     {{ task.description }}
                 </li>
             {% endfor %}

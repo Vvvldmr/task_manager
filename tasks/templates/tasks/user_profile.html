@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}
+Профиль {{ profile_user.username }}
+{% endblock %}
+
+{% block content %}
+
+<h2>Профиль пользователя {{ profile_user.username }}</h2>
+
+{% if is_friend %}
+    <p>Вы в друзьях с этим пользователем.</p>
+
+    <h3>Задачи</h3>
+
+    {% if tasks %}
+        <ul>
+            {% for task in tasks %}
+                <li>
+                    <strong>{{ task.name }}</strong>
+                    — {{ task.get_status_display }},
+                    приоритет: {{ task.get_priority_display }}
+                    {% if task.deadline %}, срок: {{ task.deadline|date:"d/m/Y H:i" }}{% endif %}
+                    <br>
+                    {{ task.description }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>У пользователя пока нет задач.</p>
+    {% endif %}
+
+{% elif request_sent %}
+    <p>Заявка в друзья отправлена, ожидает подтверждения.</p>
+
+{% elif request_received %}
+    <p>Этот пользователь хочет добавить вас в друзья.</p>
+    <form method="post" action="{% url 'accept_friend_request' profile_user.pk %}">
+        {% csrf_token %}
+        <button type="submit">Принять</button>
+    </form>
+    <form method="post" action="{% url 'decline_friend_request' profile_user.pk %}">
+        {% csrf_token %}
+        <button type="submit">Отклонить</button>
+    </form>
+
+{% else %}
+    <p>Задачи этого пользователя видны только его друзьям.</p>
+    <form method="post" action="{% url 'send_friend_request' profile_user.pk %}">
+        {% csrf_token %}
+        <button type="submit">Добавить в друзья</button>
+    </form>
+{% endif %}
+
+<p>
+    <a href="{% url 'index' %}">Назад</a>
+</p>
+
+{% endblock %}

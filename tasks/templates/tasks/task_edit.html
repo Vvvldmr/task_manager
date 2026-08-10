@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}
+Редактировать задачу
+{% endblock %}
+
+{% block content %}
+
+<h2>Редактировать задачу</h2>
+
+<form method="post">
+    {% csrf_token %}
+
+    {{ form.as_p }}
+
+    <button type="submit">Сохранить</button>
+</form>
+
+<p>
+    <a href="{% url 'task_detail' object.pk %}">Отмена</a>
+</p>
+
+{% endblock %}
