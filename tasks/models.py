@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 
 
 class Status(models.TextChoices):
@@ -24,6 +25,14 @@ class Task(models.Model):
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.TODO)
     priority = models.IntegerField(choices=Priority.choices, default=Priority.MEDIUM)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="tasks")
+
+    def save(self, *args, **kwargs):
+        if self.status == Status.DONE and self.completed_at is None:
+            self.completed_at = timezone.now()
+        elif self.status != Status.DONE:
+            self.completed_at = None
+
+        super().save(*args, **kwargs)
 
 
     def __str__(self):

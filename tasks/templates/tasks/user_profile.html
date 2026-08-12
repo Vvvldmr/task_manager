@@ -26,6 +26,8 @@
                 </li>
             {% endfor %}
         </ul>
+
+        {% include "tasks/pagination.html" %}
     {% else %}
         <p>У пользователя пока нет задач.</p>
     {% endif %}

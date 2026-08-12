@@ -1,0 +1,13 @@
+{% if task.status != "done" %}
+<form method="post" action="{% url 'task_status_update' task.pk %}" style="display:inline;">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.path }}">
+    {% if task.status != "todo" %}
+        <button type="submit" name="status" value="todo">К выполнению</button>
+    {% endif %}
+    {% if task.status != "doing" %}
+        <button type="submit" name="status" value="doing">В процессе</button>
+    {% endif %}
+    <button type="submit" name="status" value="done">Выполнено</button>
+</form>
+{% endif %}

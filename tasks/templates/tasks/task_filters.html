@@ -1,0 +1,32 @@
+<form method="get" style="margin-bottom: 1em;">
+    <input type="text" name="q" placeholder="Поиск по названию и описанию" value="{{ request.GET.q }}">
+
+    <select name="status">
+        <option value="">Все статусы</option>
+        <option value="todo" {% if request.GET.status == "todo" %}selected{% endif %}>К выполнению</option>
+        <option value="doing" {% if request.GET.status == "doing" %}selected{% endif %}>В процессе</option>
+        <option value="done" {% if request.GET.status == "done" %}selected{% endif %}>Выполнено</option>
+    </select>
+
+    <select name="priority">
+        <option value="">Любой приоритет</option>
+        <option value="1" {% if request.GET.priority == "1" %}selected{% endif %}>Низкий</option>
+        <option value="2" {% if request.GET.priority == "2" %}selected{% endif %}>Средний</option>
+        <option value="3" {% if request.GET.priority == "3" %}selected{% endif %}>Высокий</option>
+    </select>
+
+    <label>
+        <input type="checkbox" name="overdue" value="1" {% if request.GET.overdue == "1" %}checked{% endif %}>
+        Только просроченные
+    </label>
+
+    <select name="sort">
+        <option value="">Сортировка по умолчанию</option>
+        <option value="deadline" {% if request.GET.sort == "deadline" %}selected{% endif %}>По сроку</option>
+        <option value="priority" {% if request.GET.sort == "priority" %}selected{% endif %}>По приоритету</option>
+        <option value="created" {% if request.GET.sort == "created" %}selected{% endif %}>По дате создания</option>
+    </select>
+
+    <button type="submit">Применить</button>
+    <a href="{{ request.path }}">Сбросить</a>
+</form>

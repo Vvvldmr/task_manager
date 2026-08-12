@@ -46,6 +46,8 @@
 
 <h3>Мои задачи</h3>
 
+{% include "tasks/task_filters.html" %}
+
 {% if tasks %}
     <ul>
         {% for task in tasks %}
@@ -53,14 +55,18 @@
                 <strong><a href="{% url 'task_detail' task.pk %}">{{ task.name }}</a></strong>
                 — {{ task.get_status_display }},
                 приоритет: {{ task.get_priority_display }}
-                {% if task.deadline %}, срок: {{ task.deadline|date:"d.m.Y H:i" }}{% endif %}
+                {% if task.deadline %}, срок: {{ task.deadline|date:"d/m/Y H:i" }}{% endif %}
                 <br>
                 {{ task.description }}
+                <br>
+                {% include "tasks/status_form.html" with task=task %}
             </li>
         {% endfor %}
     </ul>
+
+    {% include "tasks/pagination.html" %}
 {% else %}
-    <p>У вас пока нет задач.</p>
+    <p>Ничего не найдено по заданным условиям.</p>
 {% endif %}
 
 <p>

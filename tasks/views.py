@@ -2,6 +2,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils import timezone
+from django.db.models import Q
+from django.core.paginator import Paginator
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.forms import UserCreationForm
@@ -9,8 +13,63 @@ from django.views.generic import TemplateView, CreateView, DetailView, UpdateVie
 from django.urls import reverse_lazy
 from django.contrib.auth import get_user_model, login
 
-from .models import Task, Comment, Friendship, FriendRequest
+from .models import Task, Comment, Friendship, FriendRequest, Status, Priority
 from .forms import TaskForm
+
+
+User = get_user_model()
+
+TASKS_PER_PAGE = 10
+
+SORT_OPTIONS = {
+    "deadline": "deadline",
+    "priority": "-priority",
+    "created": "-created_at",
+}
+
+
+def filter_and_sort_tasks(request, queryset):
+    """Применяет поиск, фильтры по статусу/приоритету/просрочке и сортировку
+    из GET-параметров запроса к переданному queryset задач."""
+    query = request.GET.get("q", "").strip()
+
+    if query:
+        queryset = queryset.filter(
+            Q(name__icontains=query) | Q(description__icontains=query)
+        )
+
+    status = request.GET.get("status")
+    if status in Status.values:
+        queryset = queryset.filter(status=status)
+
+    priority = request.GET.get("priority")
+    if priority in [str(value) for value, _ in Priority.choices]:
+        queryset = queryset.filter(priority=priority)
+
+    if request.GET.get("overdue") == "1":
+        queryset = queryset.filter(deadline__lt=timezone.now()).exclude(status=Status.DONE)
+
+    sort = request.GET.get("sort")
+    if sort in SORT_OPTIONS:
+        queryset = queryset.order_by(SORT_OPTIONS[sort])
+
+    return queryset
+
+
+def paginate_tasks(request, queryset, context):
+    """Разбивает queryset задач на страницы и добавляет в context объект
+    страницы и строку GET-параметров (без page) для ссылок пагинации."""
+    paginator = Paginator(queryset, TASKS_PER_PAGE)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    params = request.GET.copy()
+    params.pop("page", None)
+
+    context["tasks"] = page_obj
+    context["page_obj"] = page_obj
+    context["querystring"] = params.urlencode()
+
+    return context
 
 
 User = get_user_model()
@@ -23,9 +82,10 @@ class IndexView(TemplateView):
         context = super().get_context_data(**kwargs)
 
         if self.request.user.is_authenticated:
-            context["tasks"] = Task.objects.filter(
-                owner=self.request.user
+            tasks = filter_and_sort_tasks(
+                self.request, Task.objects.filter(owner=self.request.user)
             )
+            context = paginate_tasks(self.request, tasks, context)
 
         return context
 
@@ -100,7 +160,11 @@ class MyProfileView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["profile_user"] = self.request.user
-        context["tasks"] = Task.objects.filter(owner=self.request.user)
+
+        tasks = filter_and_sort_tasks(
+            self.request, Task.objects.filter(owner=self.request.user)
+        )
+        context = paginate_tasks(self.request, tasks, context)
 
         context["friends"] = User.objects.filter(
             friendships_as_friend__user=self.request.user
@@ -134,7 +198,12 @@ class FriendProfileView(LoginRequiredMixin, DetailView):
         ).exists()
 
         context["is_friend"] = is_friend
-        context["tasks"] = Task.objects.filter(owner=self.object) if is_friend else None
+
+        if is_friend:
+            tasks = Task.objects.filter(owner=self.object)
+            context = paginate_tasks(self.request, tasks, context)
+        else:
+            context["tasks"] = None
 
         context["request_sent"] = FriendRequest.objects.filter(
             from_user=self.request.user, to_user=self.object
@@ -190,3 +259,26 @@ def decline_friend_request(request, pk):
     from_user = get_object_or_404(User, pk=pk)
     FriendRequest.objects.filter(from_user=from_user, to_user=request.user).delete()
     return redirect("profile")
+
+
+@login_required
+@require_POST
+def change_task_status(request, pk):
+    task = get_object_or_404(Task, pk=pk, owner=request.user)
+    status = request.POST.get("status")
+
+    is_valid_status = status in Status.values
+    is_locked = task.status == Status.DONE and status != Status.DONE
+
+    if is_valid_status and not is_locked:
+        task.status = status
+        task.save()
+
+    next_url = request.POST.get("next")
+
+    if next_url and url_has_allowed_host_and_scheme(
+        next_url, allowed_hosts={request.get_host()}
+    ):
+        return redirect(next_url)
+
+    return redirect("task_detail", pk=task.pk)

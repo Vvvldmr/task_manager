@@ -13,6 +13,11 @@
 {% if task.deadline %}
     <p><strong>Срок:</strong> {{ task.deadline|date:"d/m/Y H:i" }}</p>
 {% endif %}
+{% if task.completed_at %}
+    <p><strong>Выполнена:</strong> {{ task.completed_at|date:"d/m/Y H:i" }}</p>
+{% endif %}
+
+{% include "tasks/status_form.html" with task=task %}
 
 {% if task.description %}
     <p><strong>Описание:</strong><br>{{ task.description|linebreaksbr }}</p>
